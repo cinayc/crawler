@@ -10,20 +10,12 @@ from bs4 import BeautifulSoup
 from time import sleep
 
 class SecondSpider(CrawlSpider):
-    name = "for_parse_urls"
+    name = "second"
     counter = 0
 
     def __init__(self, *a, **kw):
-        print("Init for_parse_url spider...")
+        print("Init second spider...")
         super(SecondSpider, self).__init__(*a, **kw)
-        self.conn = pymysql.connect(host='localhost', port=3306, user='work', passwd='work!@#', database='DOC')
-        self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
-
-    #@classmethod
-    #def from_crawler(cls, crawler):
-    #    settings = crawler.settings
-    #    print (settings)
-    #    return cls(settings.getbool('LOG_ENABLED'))
 
     def __del__(self):
         print("Finish for_parse_url spider...")
@@ -31,6 +23,22 @@ class SecondSpider(CrawlSpider):
         self.conn.close()
 
     def start_requests(self):
+        db_host = self.settings.get('DB_HOST')
+        db_port = self.settings.get('DB_PORT')
+        db_user = self.settings.get('DB_USER')
+        db_pass = self.settings.get('DB_PASS')
+        db_db = self.settings.get('DB_DB')
+        db_charset = self.settings.get('DB_CHARSET')
+
+        self.conn = pymysql.connect(
+            host=db_host,
+            port=db_port,
+            user=db_user,
+            passwd=db_pass,
+            database=db_db
+        )
+
+        self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
         rows = self.fetch_urls_for_request()
         print(rows)
