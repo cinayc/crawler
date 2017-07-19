@@ -41,8 +41,6 @@ class SecondSpider(CrawlSpider):
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
         rows = self.fetch_urls_for_request()
-        print(rows)
-        pass
         for row in rows:
            yield scrapy.Request(row['url'], callback=self.parse, dont_filter=True)
 
