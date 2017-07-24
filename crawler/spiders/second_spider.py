@@ -48,13 +48,20 @@ class SecondSpider(CrawlSpider):
 
         item = CrawlerItem()
         item['url'] = response.url
-        item['raw'] = None
         item['is_visited'] = 'Y'
         item['rvrsd_domain'] = self.get_rvrsd_domain(response.request.meta.get('download_slot'))
-        item['parsed'] = self.parse_text(response.text)
+        item['raw'] = response.status
+
+        if response.status == 200:
+            item['parsed'] = self.parse_text(response.text)
+        else:
+            item['parsed'] = None
+
+
+
         self.counter = self.counter + 1
         if self.counter % 100 == 0:
-            print('[%d] Sleep...' % self.counter)
+            print('[%d] Sleep 1 sec...' % self.counter)
             sleep(1)
 
         print('[%d] Parsed: %s' % (self.counter, response.url))
@@ -79,7 +86,7 @@ class SecondSpider(CrawlSpider):
 
     def fetch_urls_for_request(self):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' limit 100000;
+            SELECT url FROM DOC WHERE is_visited = 'N' limit 100000  ;
             """
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()

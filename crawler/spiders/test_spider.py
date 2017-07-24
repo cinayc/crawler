@@ -13,7 +13,7 @@ class TestSpider(CrawlSpider):
     name = "test"
 
     start_urls = [
-        "http://www.clien.net",
+        "https://ko.wikipedia.org/w/index.php?printable=yes&title=%EA%B1%B4%EA%B0%95",
     ]
 
     def __init__(self, *a, **kw):
@@ -23,7 +23,6 @@ class TestSpider(CrawlSpider):
 
 
     def start_requests(self):
-        #print("Existing settings in start_requests: %s" % self.settings.attributes.keys())
         db_host = self.settings.get('DB_HOST')
         db_port = self.settings.get('DB_PORT')
         db_user = self.settings.get('DB_USER')
@@ -31,12 +30,6 @@ class TestSpider(CrawlSpider):
         db_db = self.settings.get('DB_DB')
         db_charset = self.settings.get('DB_CHARSET')
 
-        print(db_host)
-        print(db_port)
-        print(db_user)
-        print(db_pass)
-        print(db_db)
-        print(db_charset)
         self.conn = pymysql.connect(host='localhost', port=3306, user='work', passwd='work!@#', database='DOC')
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
@@ -48,6 +41,7 @@ class TestSpider(CrawlSpider):
 
 
     def parse(self, response):
-
-        #print("Existing settings in parse: %s" % self.settings.attributes.keys())
+        print('-------------------------')
+        print(response.status)
+        print('-------------------------')
         pass
