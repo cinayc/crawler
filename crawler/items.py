@@ -14,4 +14,5 @@ class CrawlerItem(scrapy.Item):
     is_visited = scrapy.Field()
     parsed = scrapy.Field()
     rvrsd_domain = scrapy.Field()
+    status = scrapy.Field()
     pass
