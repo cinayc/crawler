@@ -51,7 +51,13 @@ class SecondSpider(CrawlSpider):
         item['raw'] = None
         item['is_visited'] = 'Y'
         item['rvrsd_domain'] = self.get_rvrsd_domain(response.request.meta.get('download_slot'))
-        item['parsed'] = self.parse_text(response.text)
+        item['status'] = response.status
+
+        if response.status == 200:
+            item['parsed'] = self.parse_text(response.text)
+        else:
+            item['parsed'] = None
+
         self.counter = self.counter + 1
         if self.counter % 100 == 0:
             print('[%d] Sleep...' % self.counter)
