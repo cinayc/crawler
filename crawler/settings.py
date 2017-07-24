@@ -87,12 +87,12 @@ ITEM_PIPELINES = {
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-LOG_FILE = 'cralwer_log_file'   #sample
+LOG_FILE = 'sample_log_file'   #sample
 #LOG_LEVEL = 'INFO'
 REACTOR_THREADPOOL_MAXSIZE = 20
 RETRY_ENABLED = False
 DOWNLOAD_TIMEOUT = 15
-#REDIRECT_ENABLED = False
+REDIRECT_ENABLED = False
 AJAXCRAWL_ENABLED = True
 
 DB_HOST = 'localhost'     #sample

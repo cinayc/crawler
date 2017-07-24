@@ -1,5 +1,3 @@
 crawler_spider.log
-.idea/workspace.xml
 crawler/spiders/__pycache__
 crawler/__pycache__
-crawler/.idea
