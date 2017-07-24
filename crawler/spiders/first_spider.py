@@ -112,18 +112,17 @@ class FirstSpider(CrawlSpider):
 
         print('Try to parse: %s' % response.url)
 
-        if response.status >= 400:
-            print('[%d] Fail to parse: %s' % (response.status, response.url))
-            request_url = self.fetch_one_url(self.request_url)
-            return scrapy.Request(request_url, callback=self.parse, dont_filter=True)
-
         item = CrawlerItem()
         item['url'] = response.url
-        #item['raw'] = response.text
+        item['status'] = response.status
         item['raw'] = None
         item['is_visited'] = 'Y'
         item['rvrsd_domain'] = self.get_rvrsd_domain(response.request.meta.get('download_slot'))
-        item['parsed'] = self.parse_text(response.text)
+
+        if response.status == 200:
+            item['parsed'] = self.parse_text(response.text)
+        else:
+            item['parsed'] = None
 
         print('Success to parse: %s' % response.url)
         yield item
@@ -133,6 +132,7 @@ class FirstSpider(CrawlSpider):
             for link in links:
                 linkItem = CrawlerItem()
                 linkItem['url'] = link.url
+                linkItem['status'] = None
                 linkItem['raw'] = None
                 linkItem['is_visited'] = 'N'
                 linkItem['parsed'] = None

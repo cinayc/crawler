@@ -87,7 +87,7 @@ ITEM_PIPELINES = {
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-LOG_FILE = 'sample_log_file'   #sample
+LOG_FILE = 'sample.log'   #sample
 #LOG_LEVEL = 'INFO'
 REACTOR_THREADPOOL_MAXSIZE = 20
 RETRY_ENABLED = False
@@ -95,11 +95,11 @@ DOWNLOAD_TIMEOUT = 15
 REDIRECT_ENABLED = False
 AJAXCRAWL_ENABLED = True
 
-DB_HOST = 'localhost'     #sample
-DB_PORT = 3306              #sample
-DB_USER = 'work'     #sample
-DB_PASS = 'work!@#'   #sample
-DB_DB = 'DOC'   #sample
-DB_CHARSET = 'utf8'   #sample
+DB_HOST = 'sample_host'     #sample
+DB_PORT = sample_port              #sample
+DB_USER = 'sample_user'     #sample
+DB_PASS = 'sample_passwd'   #sample
+DB_DB = 'sample_db'   #sample
+DB_CHARSET = 'sample_charset'   #sample
 
 HTTPERROR_ALLOW_ALL = True
