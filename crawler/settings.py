@@ -100,4 +100,3 @@ DB_USER = 'work'     #sample
 DB_PASS = 'work!@#'   #sample
 DB_DB = 'DOC'   #sample
 DB_CHARSET = 'utf8'   #sample
-
