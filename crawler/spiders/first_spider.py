@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule, CrawlSpider
 from crawler.items import CrawlerItem
@@ -81,7 +82,6 @@ class FirstSpider(CrawlSpider):
         db_user = self.settings.get('DB_USER')
         db_pass = self.settings.get('DB_PASS')
         db_db = self.settings.get('DB_DB')
-        db_charset = self.settings.get('DB_CHARSET')
 
         self.conn = pymysql.connect(
             host=db_host,
@@ -94,7 +94,9 @@ class FirstSpider(CrawlSpider):
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
         request_url = self.fetch_one_url(self.request_url)
-        yield scrapy.Request(request_url, callback=self.parse, dont_filter=True)
+        yield scrapy.Request(request_url,
+                             callback=self.parse,
+                             errback=lambda x: self.download_errback(x, request_url))
 
     def parse_link(self, response):
 
@@ -157,7 +159,6 @@ class FirstSpider(CrawlSpider):
         return ".".join(splitList)
 
     def fetch_one_url(self, request_url):
-        print(request_url)
         sql = """
             SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'kr.co.yonhapnews.www' limit 1;
             """
@@ -170,3 +171,19 @@ class FirstSpider(CrawlSpider):
             result = row['url']
 
         return result
+
+    def download_errback(self, failure, url):
+
+        if failure.check(IgnoreRequest):
+            self.logger.debug('Forbidden by robot rule')
+            item = CrawlerItem()
+            item['url'] = url
+            item['is_visited'] = 'Y'
+            item['rvrsd_domain'] = None
+            item['raw'] = None
+            item['parsed'] = None
+            item['status'] = -1
+
+            yield item
+        else:
+            pass

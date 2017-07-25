@@ -73,9 +73,8 @@ class CrawlerPipeline(object):
         return hashlib.md5(url.encode('utf-8')).hexdigest()[0:16]
 
     def open_spider(self, spider):
-        print('Open Spider...')
+        pass
 
     def close_spider(self, spider):
         self.cursor.close()
         self.conn.close()
-        print('Close Spider...')

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule, CrawlSpider
 from crawler.items import CrawlerItem
@@ -42,7 +43,9 @@ class SecondSpider(CrawlSpider):
 
         rows = self.fetch_urls_for_request()
         for row in rows:
-           yield scrapy.Request(row['url'], callback=self.parse, dont_filter=True)
+           yield scrapy.Request(row['url'],
+                                callback=self.parse,
+                                errback=lambda x: self.download_errback(x, row['url']))
 
     def parse(self, response):
 
@@ -91,3 +94,19 @@ class SecondSpider(CrawlSpider):
         rows = self.cursor.fetchall()
 
         return rows
+
+    def download_errback(self, failure, url):
+
+        if failure.check(IgnoreRequest):
+            self.logger.debug('Forbidden by robot rule')
+            item = CrawlerItem()
+            item['url'] = url
+            item['is_visited'] = 'Y'
+            item['rvrsd_domain'] = None
+            item['raw'] = None
+            item['parsed'] = None
+            item['status'] = -1
+
+            yield item
+        else:
+            pass
