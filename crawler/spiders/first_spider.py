@@ -3,6 +3,8 @@ import scrapy
 from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule, CrawlSpider
+from twisted.internet.error import DNSLookupError
+
 from crawler.items import CrawlerItem
 
 import pymysql
@@ -160,7 +162,7 @@ class FirstSpider(CrawlSpider):
 
     def fetch_one_url(self, request_url):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'kr.co.yonhapnews.www' limit 1;
+            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'kr.co.ppomppu.www' limit 1;
             """
         self.cursor.execute(sql, (request_url))
         row = self.cursor.fetchone()
@@ -173,16 +175,21 @@ class FirstSpider(CrawlSpider):
         return result
 
     def download_errback(self, failure, url):
+        item = CrawlerItem()
+        item['url'] = url
+        item['is_visited'] = 'Y'
+        item['rvrsd_domain'] = None
+        item['raw'] = None
+        item['parsed'] = None
 
         if failure.check(IgnoreRequest):
             self.logger.debug('Forbidden by robot rule')
-            item = CrawlerItem()
-            item['url'] = url
-            item['is_visited'] = 'Y'
-            item['rvrsd_domain'] = None
-            item['raw'] = None
-            item['parsed'] = None
             item['status'] = -1
+
+            yield item
+        elif failure.check(DNSLookupError):
+            self.logger.info('Fail to DNS lookup.')
+            item['status'] = -2
 
             yield item
         else:
