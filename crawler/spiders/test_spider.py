@@ -4,8 +4,8 @@ from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import Rule, CrawlSpider
-from twisted.python import failure
-
+from service_identity.exceptions import DNSMismatch
+from twisted.internet.error import DNSLookupError
 from crawler.items import CrawlerItem
 
 import pymysql
@@ -18,7 +18,10 @@ class TestSpider(CrawlSpider):
 
     start_urls = [
         "http://www.clien.net",
-        "http://shopping.naver.com/search/all.nhn?frm=NVSCTAB&query=%EC%B8%B5%EA%B3%BC+%EC%82%AC%EC%9D%B4&where=all",
+        "http://shopping.naver.com/search/all.nhn?frm=NVSCTAB&query=%EC%B8%B5%EA%B3%BC+%EC%82%AC%EC%9D%B4&where=all", # robot rule test
+        "https://www.sgic.co.kr/chp/fileDownload/download.mvc;jsessionid=vvVNjS05IjEVHy11OoAT3vje8KzvFySWceewEgDSb61DodNC9hDtAfGcWOdLaFI0.egisap2_servlet_engine13?fileId=014D8DBD1EFE5CD6629A629A", #AttributeError test
+        "http://150090289679516/robots.txt", # DNS lookup test
+        ""
     ]
 
     def __init__(self, *a, **kw):
@@ -41,7 +44,7 @@ class TestSpider(CrawlSpider):
         # print(db_charset)
         self.conn = pymysql.connect(host='localhost', port=3306, user='work', passwd='work!@#', database='DOC')
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
-        url = self.start_urls[1]
+        url = self.start_urls[2]
         yield scrapy.Request(url,
                              callback=self.parse,
                              dont_filter=True,
@@ -52,8 +55,13 @@ class TestSpider(CrawlSpider):
 
 
     def parse(self, response):
+        try:
+            raw = response.text
+        except AttributeError as e:
+            self.logger.error(e)
 
-        #print("Existing settings in parse: %s" % self.settings.attributes.keys())
+
+        #self.parse_text(raw)
         pass
 
     def download_errback(self, failure, url):
@@ -69,5 +77,22 @@ class TestSpider(CrawlSpider):
             item['status'] = -1
 
             yield item
+
+        elif failure.check(DNSLookupError):
+            self.logger.info('Fail to DNS lookup.')
+
+        elif failure.check(DNSMismatch):
+            self.logger.info('DNSMismatch')
+
         else:
             pass
+
+    def parse_text(self, raw):
+        parsed = None
+        soup = BeautifulSoup(raw, "lxml")
+
+        for surplus in soup(["script", "style"]):
+            surplus.extract()
+
+        parsed = soup.get_text().replace('\n', '').replace('\t', '').replace('\r', '')
+        return parsed

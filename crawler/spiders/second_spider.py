@@ -43,6 +43,11 @@ class SecondSpider(CrawlSpider):
 
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
+        # test_url = "https://www.sgic.co.kr/chp/fileDownload/download.mvc;jsessionid=vvVNjS05IjEVHy11OoAT3vje8KzvFySWceewEgDSb61DodNC9hDtAfGcWOdLaFI0.egisap2_servlet_engine13?fileId=014D8DBD1EFE5CD6629A629A"
+        # yield scrapy.Request(test_url,
+        #                      callback=self.parse,
+        #                      errback=lambda x: self.download_errback(x, row['url']))
+
         rows = self.fetch_urls_for_request()
         for row in rows:
            yield scrapy.Request(row['url'],
@@ -56,24 +61,32 @@ class SecondSpider(CrawlSpider):
         item['raw'] = None
         item['is_visited'] = 'Y'
         item['rvrsd_domain'] = self.get_rvrsd_domain(response.request.meta.get('download_slot'))
-        item['status'] = response.status
 
-        if response.status == 200:
-            item['parsed'] = self.parse_text(response.text)
-        else:
+        try:
+            item['status'] = response.status
+            raw = response.text
+            if response.status == 200:
+                item['parsed'] = self.parse_text(raw)
+            else:
+                item['parsed'] = None
+
+            self.counter = self.counter + 1
+            if self.counter % 100 == 0:
+                print('[%d] Sleep...' % self.counter)
+                sleep(1)
+
+            print('[%d] Parsed: %s' % (self.counter, response.url))
+
+        except AttributeError as e:
+            item['status'] = -3
             item['parsed'] = None
+            self.logger.error(e)
+            print('[%d] Fail to Parse: %s , because %s' % (self.counter, response.url, e))
 
-        self.counter = self.counter + 1
-        if self.counter % 100 == 0:
-            print('[%d] Sleep...' % self.counter)
-            sleep(1)
-
-        print('[%d] Parsed: %s' % (self.counter, response.url))
 
         return item
 
     def parse_text(self, raw):
-        parsed = None
         soup = BeautifulSoup(raw, "lxml")
 
         for surplus in soup(["script", "style"]):
