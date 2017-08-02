@@ -3,16 +3,16 @@ import scrapy
 from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule, CrawlSpider
-from twisted.internet.error import DNSLookupError
-
+from service_identity.exceptions import DNSMismatch
+from twisted.internet.error import DNSLookupError, NoRouteError
 from crawler.items import CrawlerItem
-
 import pymysql
-
 from bs4 import BeautifulSoup
 from time import sleep
+import re
 
 class SecondSpider(CrawlSpider):
+    pattern = re.compile(r"[\n\r\t\0\s]+", re.DOTALL)
     name = "second"
     counter = 0
 
@@ -83,7 +83,6 @@ class SecondSpider(CrawlSpider):
             self.logger.error(e)
             print('[%d] Fail to Parse: %s , because %s' % (self.counter, response.url, e))
 
-
         return item
 
     def parse_text(self, raw):
@@ -92,7 +91,7 @@ class SecondSpider(CrawlSpider):
         for surplus in soup(["script", "style"]):
             surplus.extract()
 
-        parsed = soup.get_text().replace('\n', '').replace('\t', '').replace('\r', '')
+        parsed = re.sub(self.pattern, " ", soup.get_text(), 0)
         return parsed
 
 
@@ -103,7 +102,7 @@ class SecondSpider(CrawlSpider):
 
     def fetch_urls_for_request(self):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' limit 100000;
+            SELECT url FROM DOC WHERE is_visited = 'N' limit 200000;
             """
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()
@@ -122,11 +121,20 @@ class SecondSpider(CrawlSpider):
             self.logger.debug('Forbidden by robot rule')
             item['status'] = -1
 
-            yield item
         elif failure.check(DNSLookupError):
             self.logger.info('Fail to DNS lookup.')
             item['status'] = -2
 
-            yield item
+        elif failure.check(DNSMismatch):
+            self.logger.info('Fail to DNS match.')
+            item['status'] = -2
+
+        elif failure.check(NoRouteError):
+            self.logger.info('No route error.')
+            item['status'] = -4
+
         else:
-            pass
+            self.logger.info('Unknown error.')
+            item['status'] = -255
+
+        yield item

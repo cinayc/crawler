@@ -3,16 +3,16 @@ import scrapy
 from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule, CrawlSpider
-from twisted.internet.error import DNSLookupError
-
+from service_identity.exceptions import DNSMismatch
+from twisted.internet.error import DNSLookupError, NoRouteError
 from crawler.items import CrawlerItem
-
 import pymysql
-
 from bs4 import BeautifulSoup
 from time import sleep
+import re
 
 class FirstSpider(CrawlSpider):
+    pattern = re.compile(r"[\n\r\t\0\s]+", re.DOTALL)
     name = "first"
     start_urls = [
         "http://www.clien.net",
@@ -67,7 +67,7 @@ class FirstSpider(CrawlSpider):
                           deny_domains=denied_domains),
             callback="parse_link",
             follow=True),
-        )
+    )
 
     def __init__(self, *a, **kw):
         print("Init spider...")
@@ -121,14 +121,28 @@ class FirstSpider(CrawlSpider):
         item['raw'] = None
         item['is_visited'] = 'Y'
         item['rvrsd_domain'] = self.get_rvrsd_domain(response.request.meta.get('download_slot'))
-        item['status'] = response.status
 
-        if response.status == 200:
-            item['parsed'] = self.parse_text(response.text)
-        else:
+        try:
+            item['status'] = response.status
+            raw = response.text
+            if response.status == 200:
+                item['parsed'] = self.parse_text(raw)
+            else:
+                item['parsed'] = None
+
+            self.counter = self.counter + 1
+            if self.counter % 100 == 0:
+                print('[%d] Sleep...' % self.counter)
+                sleep(1)
+
+            print('[%d] Success to parse: %s' % (self.counter, response.url))
+
+        except AttributeError as e:
+            item['status'] = -3
             item['parsed'] = None
+            self.logger.error(e)
+            print('[%d] Fail to Parse: %s , because %s' % (self.counter, response.url, e))
 
-        print('Success to parse: %s' % response.url)
         yield item
 
         links = LinkExtractor(canonicalize=True, unique=True, deny_domains=self.denied_domains).extract_links(response)
@@ -151,9 +165,8 @@ class FirstSpider(CrawlSpider):
         for surplus in soup(["script", "style"]):
             surplus.extract()
 
-        parsed = soup.get_text().replace('\n', '').replace('\t', '').replace('\r', '')
+        parsed = re.sub(self.pattern, " ", soup.get_text(), 0)
         return parsed
-
 
     def get_rvrsd_domain(self, domain):
         splitList = domain.split('.')
@@ -162,7 +175,7 @@ class FirstSpider(CrawlSpider):
 
     def fetch_one_url(self, request_url):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'kr.co.ppomppu.www' limit 1;
+            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'com.tistory.rkfka27' limit 1;
             """
         self.cursor.execute(sql, (request_url))
         row = self.cursor.fetchone()
@@ -186,11 +199,20 @@ class FirstSpider(CrawlSpider):
             self.logger.debug('Forbidden by robot rule')
             item['status'] = -1
 
-            yield item
         elif failure.check(DNSLookupError):
             self.logger.info('Fail to DNS lookup.')
             item['status'] = -2
 
-            yield item
+        elif failure.check(DNSMismatch):
+            self.logger.info('Fail to DNS match.')
+            item['status'] = -2
+
+        elif failure.check(NoRouteError):
+            self.logger.info('No route error.')
+            item['status'] = -4
+
         else:
-            pass
+            self.logger.info('Unknown error.')
+            item['status'] = -255
+
+        yield item
