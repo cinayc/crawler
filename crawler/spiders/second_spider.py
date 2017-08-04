@@ -102,7 +102,7 @@ class SecondSpider(CrawlSpider):
 
     def fetch_urls_for_request(self):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' limit 200000;
+            SELECT url FROM DOC WHERE is_visited = 'N' limit 300000;
             """
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()

@@ -175,7 +175,7 @@ class FirstSpider(CrawlSpider):
 
     def fetch_one_url(self, request_url):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'com.tistory.rkfka27' limit 1;
+            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'kr.co.yonhapnews.www' limit 10;
             """
         self.cursor.execute(sql, (request_url))
         row = self.cursor.fetchone()

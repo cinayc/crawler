@@ -1,9 +1,13 @@
 #!/bin/bash
-PID=`ps -ef | grep -i scrapy | grep for_parse_urls | awk '{print $2}'`
+PIDS=`ps -ef | grep -i scrapy | grep second | awk '{print $2}' | xargs`
 
-if [ $PID -gt 0 ]
+if [ -n "$PIDS" ]
 then
-	echo $PID
+	for pid in $PIDS
+	do
+		echo "Already run" $pid
+	done
 else
-	echo none
+	echo "run scrapy"
+	scrapy crawl second --logfile=second 2>&1 > /dev/null &
 fi
