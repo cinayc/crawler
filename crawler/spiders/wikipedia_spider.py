@@ -17,7 +17,7 @@ class WikipediaSpider(CrawlSpider):
     counter = 0
 
     def __init__(self, *a, **kw):
-        print("Init second spider...")
+        print("Init wikipedia spider...")
         super(WikipediaSpider, self).__init__(*a, **kw)
 
     def __del__(self):
@@ -75,7 +75,7 @@ class WikipediaSpider(CrawlSpider):
         except AttributeError as e:
             item['status'] = -3
             item['parsed'] = None
-            self.logger.error(e)
+            self.logger.error('Fail to Parse: %s , because %s' % (response.url, e))
             print('[%d] Fail to Parse: %s , because %s' % (self.counter, response.url, e))
 
         return item
@@ -83,8 +83,12 @@ class WikipediaSpider(CrawlSpider):
     def parse_text(self, raw):
         soup = BeautifulSoup(raw, "lxml")
 
-        article = soup.find("div", {"class": "mw-parser-output"}).get_text()
-        parsed = re.sub(self.pattern, " ", article, 0)
+        try:
+            article = soup.find("div", {"class": "mw-parser-output"}).get_text()
+            parsed = re.sub(self.pattern, " ", article, 0).replace('↑', '').replace('\'', '')
+        except AttributeError as e:
+            raise e
+
         return parsed
 
 
@@ -95,7 +99,7 @@ class WikipediaSpider(CrawlSpider):
 
     def fetch_urls_for_request(self):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and rvrsd_domain = 'org.wikipedia.ko' limit 300000;
+            SELECT url FROM DOC WHERE is_visited = 'N' and rvrsd_domain = 'org.wikipedia.ko' limit 100000
             """
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()

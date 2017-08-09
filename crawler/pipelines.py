@@ -52,7 +52,7 @@ class CrawlerPipeline(object):
 				WHERE NOT EXISTS (SELECT * FROM DOC WHERE id=%s)
 				"""
             self.cursor.execute(sql, (id, url, is_visited, rvrsd_domain, id))
-            print("Save new URL: %s" % url)
+            print("Save new URL: [%s] %s" % (id, url))
         elif is_visited == "Y":
             sql = """
 				INSERT INTO DOC (id, c_time, v_time, raw, parsed, url, is_visited, rvrsd_domain)
@@ -60,9 +60,9 @@ class CrawlerPipeline(object):
 				ON DUPLICATE KEY UPDATE raw = %s, is_visited = %s, parsed = %s, v_time = now(), visit_cnt = visit_cnt + 1, status = %s
 				"""
             self.cursor.execute(sql, (id, raw, parsed, url, is_visited, rvrsd_domain, raw, is_visited, parsed, status))
-            print("Update URL: %s" % url)
+            print("Update URL: [%s] %s" % (id, url))
         else:
-            print("Pass URL: %s" % url)
+            print("Pass URL: [%s] %s" % (id, url))
             pass
 
         self.conn.commit()

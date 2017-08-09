@@ -22,6 +22,12 @@ class FirstSpider(CrawlSpider):
     counter = 0
     sleep_counter = 1
 
+    denied_regex = [
+        "mall",
+        "search",
+        "shop"
+    ]
+
     allowed_domains = [
         "clien.net",
         "daum.net",
@@ -30,6 +36,7 @@ class FirstSpider(CrawlSpider):
         "tistory.com",
         "kr",
     ]
+
     denied_domains = [
         "twitter.com",
         "facebook.com",
@@ -63,6 +70,7 @@ class FirstSpider(CrawlSpider):
         Rule(
             LinkExtractor(canonicalize=True,
                           unique=True,
+                          deny=denied_regex,
                           allow_domains=allowed_domains,
                           deny_domains=denied_domains),
             callback="parse_link",
@@ -145,7 +153,7 @@ class FirstSpider(CrawlSpider):
 
         yield item
 
-        links = LinkExtractor(canonicalize=True, unique=True, deny_domains=self.denied_domains).extract_links(response)
+        links = LinkExtractor(canonicalize=True, unique=True, deny=self.denied_regex, deny_domains=self.denied_domains).extract_links(response)
         if len(links) > 0:
             for link in links:
                 linkItem = CrawlerItem()
@@ -175,7 +183,7 @@ class FirstSpider(CrawlSpider):
 
     def fetch_one_url(self, request_url):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'kr.co.yonhapnews.www' limit 10;
+            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'org.wikipedia.ko' limit 10;
             """
         self.cursor.execute(sql, (request_url))
         row = self.cursor.fetchone()
