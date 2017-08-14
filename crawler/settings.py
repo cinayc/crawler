@@ -15,7 +15,7 @@ SPIDER_MODULES = ['crawler.spiders']
 NEWSPIDER_MODULE = 'crawler.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'v_bot (+http://www.yourdomain.com)' # default: Scrapy/VERSION (+http://scrapy.org)
+USER_AGENT = 'v_bot' # default: Scrapy/VERSION (+http://scrapy.org)
 
 ROBOTSTXT_OBEY = True
 

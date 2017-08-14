@@ -9,5 +9,6 @@ then
 	done
 else
 	echo "run scrapy"
-	scrapy crawl second --logfile=second 2>&1 > /dev/null &
+	cd /home/junsoo/workspace/crawler
+	scrapy crawl second --logfile=second 2>&1 > /home/junsoo/workspace/crawlerfrom_crontab &
 fi

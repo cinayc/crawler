@@ -2,6 +2,7 @@
 import scrapy
 from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
+from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import Rule, CrawlSpider
 from service_identity.exceptions import DNSMismatch
 from twisted.internet.error import DNSLookupError, NoRouteError
@@ -15,7 +16,8 @@ class FirstSpider(CrawlSpider):
     pattern = re.compile(r"[\n\r\t\0\s]+", re.DOTALL)
     name = "first"
     start_urls = [
-        "http://www.clien.net",
+        "https://www.clien.net/service/",
+        "https://namu.wiki/w/%EC%8B%9D%EB%AC%BC%20vs%20%EC%A2%80%EB%B9%84%20%ED%9E%88%EC%96%B4%EB%A1%9C%EC%A6%88/%EC%A2%80%EB%B9%84/%EA%B5%90%ED%99%9C",
     ]
     request_url = ''
 
@@ -23,9 +25,18 @@ class FirstSpider(CrawlSpider):
     sleep_counter = 1
 
     denied_regex = [
-        "mall",
-        "search",
-        "shop"
+        ".*mall.*",
+        ".*search.*",
+        ".*shop.*",
+        ".*ko\.wikipedia\.org/w/.*",
+        ".*\/board\/sold/.*",
+        ".*\/board\/rule.*",
+        ".*\/board\/notice.*",
+        ".*\/board\/faq.*",
+        ".*\/cs\/.*",
+        ".*\/auth\/.*",
+        ".*\/tag\/.*",
+        ".*market.*"
     ]
 
     allowed_domains = [
@@ -35,6 +46,7 @@ class FirstSpider(CrawlSpider):
         "ko.wikipedia.org",
         "tistory.com",
         "kr",
+        "namu.wiki",
     ]
 
     denied_domains = [
@@ -58,12 +70,15 @@ class FirstSpider(CrawlSpider):
         "wiktionary.org",
         "wikimediafoundation.org",
         "reddit.com",
-        "br.gov",
+        "gov",
         "texashistory.unt.edu",
         "amazon.com",
         "indiatimes.com",
         "youtube.com",
         "phonearena.com",
+        "s.ppomppu.co.kr",
+        "saramin.co.kr",
+        "go.kr",
     ]
 
     rules = (
@@ -103,7 +118,8 @@ class FirstSpider(CrawlSpider):
 
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
-        request_url = self.fetch_one_url(self.request_url)
+        # request_url = self.fetch_one_url(self.request_url)
+        request_url = self.start_urls[0]
         yield scrapy.Request(request_url,
                              callback=self.parse,
                              errback=lambda x: self.download_errback(x, request_url))
@@ -183,7 +199,7 @@ class FirstSpider(CrawlSpider):
 
     def fetch_one_url(self, request_url):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'org.wikipedia.ko' limit 10;
+            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'net.clien' limit 10;
             """
         self.cursor.execute(sql, (request_url))
         row = self.cursor.fetchone()
@@ -218,6 +234,11 @@ class FirstSpider(CrawlSpider):
         elif failure.check(NoRouteError):
             self.logger.info('No route error.')
             item['status'] = -4
+
+        elif failure.check(HttpError):
+            status = failure.value.response
+            self.logger.info('Http error [%s].' % status)
+            item['status'] = status
 
         else:
             self.logger.info('Unknown error.')

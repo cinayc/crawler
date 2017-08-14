@@ -2,6 +2,7 @@
 import scrapy
 from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
+from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import Rule, CrawlSpider
 from service_identity.exceptions import DNSMismatch
 from twisted.internet.error import DNSLookupError, NoRouteError
@@ -129,6 +130,11 @@ class WikipediaSpider(CrawlSpider):
         elif failure.check(NoRouteError):
             self.logger.info('No route error.')
             item['status'] = -4
+
+        elif failure.check(HttpError):
+            status = failure.value.response
+            self.logger.info('Http error [%s].' % status)
+            item['status'] = status
 
         else:
             self.logger.info('Unknown error.')
