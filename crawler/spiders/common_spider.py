@@ -23,76 +23,11 @@ class CommonSpider(CrawlSpider):
     counter = 0
     sleep_counter = 1
 
-    denied_regex = [
-        ".*mall.*",
-        ".*search.*",
-        ".*shop.*",
-        ".*ko\.wikipedia\.org/w/.*",
-        ".*\/board\/sold/.*",
-        ".*\/board\/rule.*",
-        ".*\/board\/notice.*",
-        ".*\/board\/faq.*",
-        ".*\/cs\/.*",
-        ".*\/auth\/.*",
-        ".*\/tag\/.*",
-        ".*market.*",
-        ".*moneta.*",
-        ".*LostMgr\.php",
-        ".*LostMgr\.php",
-    ]
+    denied_regex = []
 
-    allowed_domains = [
-        "clien.net",
-        "daum.net",
-        "naver.com",
-        "ko.wikipedia.org",
-        "tistory.com",
-        "kr",
-        "namu.wiki",
-        "www.yonhapnews.co.kr"
-    ]
+    allowed_domains = []
 
-    denied_domains = [
-        "twitter.com",
-        "facebook.com",
-        "instagram.com",
-        "google.com",
-        "archive.org",
-        "bbc.co.uk",
-        "commonswikimedia.org",
-        "reuters.com",
-        "wikibooks.org",
-        "wikimedia.org",
-        "wikinews.org",
-        "mediawiki.org",
-        "wikivoyage.org",
-        "wikiquote.org",
-        "wikidata.org",
-        "wikisource.org",
-        "wikiversity.org",
-        "wiktionary.org",
-        "wikimediafoundation.org",
-        "reddit.com",
-        "gov",
-        "texashistory.unt.edu",
-        "amazon.com",
-        "indiatimes.com",
-        "youtube.com",
-        "phonearena.com",
-        "s.ppomppu.co.kr",
-        "saramin.co.kr",
-        "go.kr",
-        "moneta.co.kr",
-        "hottracks.co.kr",
-        "expedia.co.kr",
-        "costco.co.kr",
-        "movie.naver.com",
-        "busan.koreapolice.co.kr",
-        "www.korea.kr",
-        "www.jacoup.co.kr",
-        "or.kr",
-        "www.ogage.co.kr",
-    ]
+    denied_domains = []
 
     rules = (
         Rule(

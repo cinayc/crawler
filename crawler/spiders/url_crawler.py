@@ -40,7 +40,9 @@ class UrlCrawlSpider(CommonSpider):
         ".*market.*",
         ".*moneta.*",
         ".*LostMgr\.php",
-        ".*LostMgr\.php",
+        ".*schedule.*",
+        ".*channel.*",
+        ".*%ED%8A%B9%EC%88%98:.*",
     ]
 
     allowed_domains = [

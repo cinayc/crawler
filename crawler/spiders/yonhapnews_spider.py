@@ -10,17 +10,17 @@ from crawler.items import CrawlerItem
 from crawler.spiders.common_spider import CommonSpider
 
 
-class WikipediaSpider(CommonSpider):
+class YonhapnewsSpider(CommonSpider):
     pattern = re.compile(r"[\n\r\t\0\s]+", re.DOTALL)
-    name = "wikipedia"
+    name = "yonhapnews"
     counter = 0
 
     def __init__(self, *a, **kw):
-        print("Init wikipedia spider...")
-        super(WikipediaSpider, self).__init__(*a, **kw)
+        print("Init yonhapnews spider...")
+        super(YonhapnewsSpider, self).__init__(*a, **kw)
 
     def __del__(self):
-        print("Finish wikipedia spider...")
+        print("Finish yonhapnews spider...")
         self.cursor.close()
         self.conn.close()
 
@@ -86,7 +86,7 @@ class WikipediaSpider(CommonSpider):
             surplus.extract()
 
         try:
-            article = soup.find("div", {"class": "mw-parser-output"}).get_text()
+            article = soup.find("div", {"class": "article-wrap"}).get_text()
             parsed = re.sub(self.pattern, " ", article, 0).replace('↑', '').replace('\'', '')
         except AttributeError as e:
             raise e
@@ -96,7 +96,7 @@ class WikipediaSpider(CommonSpider):
 
     def fetch_urls_for_request(self):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and rvrsd_domain = 'org.wikipedia.ko' limit 100000
+            SELECT url FROM DOC WHERE is_visited = 'N' and rvrsd_domain = 'kr.co.yonhapnews.www' limit 100000
             """
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()

@@ -36,7 +36,10 @@ class FirstSpider(CrawlSpider):
         ".*\/cs\/.*",
         ".*\/auth\/.*",
         ".*\/tag\/.*",
-        ".*market.*"
+        ".*market.*",
+        ".*moneta.*",
+        ".*LostMgr\.php",
+        ".*LostMgr\.php",
     ]
 
     allowed_domains = [
@@ -47,6 +50,7 @@ class FirstSpider(CrawlSpider):
         "tistory.com",
         "kr",
         "namu.wiki",
+        "www.yonhapnews.co.kr"
     ]
 
     denied_domains = [
@@ -79,6 +83,16 @@ class FirstSpider(CrawlSpider):
         "s.ppomppu.co.kr",
         "saramin.co.kr",
         "go.kr",
+        "moneta.co.kr",
+        "hottracks.co.kr",
+        "expedia.co.kr",
+        "costco.co.kr",
+        "movie.naver.com",
+        "busan.koreapolice.co.kr",
+        "www.korea.kr",
+        "www.jacoup.co.kr",
+        "or.kr",
+        "www.ogage.co.kr",
     ]
 
     rules = (
@@ -118,8 +132,8 @@ class FirstSpider(CrawlSpider):
 
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
-        # request_url = self.fetch_one_url(self.request_url)
-        request_url = self.start_urls[0]
+        request_url = self.fetch_one_url(self.request_url)
+        # request_url = self.start_urls[0]
         yield scrapy.Request(request_url,
                              callback=self.parse,
                              errback=lambda x: self.download_errback(x, request_url))
@@ -199,7 +213,7 @@ class FirstSpider(CrawlSpider):
 
     def fetch_one_url(self, request_url):
         sql = """
-            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'net.clien' limit 10;
+            SELECT url FROM DOC WHERE is_visited = 'N' and url <> %s and rvrsd_domain = 'kr.co.yonhapnews.www' limit 10;
             """
         self.cursor.execute(sql, (request_url))
         row = self.cursor.fetchone()
