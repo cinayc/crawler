@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import scrapy
 from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spidermiddlewares.httperror import HttpError
@@ -7,13 +6,12 @@ from scrapy.spiders import Rule, CrawlSpider
 from service_identity.exceptions import DNSMismatch
 from twisted.internet.error import DNSLookupError, NoRouteError
 from crawler.items import CrawlerItem
-import pymysql
 from bs4 import BeautifulSoup
 from time import sleep
 import re
 
 class CommonSpider(CrawlSpider):
-    pattern = re.compile(r"[\n\r\t\0\s]+", re.DOTALL)
+    pattern = re.compile(r"[\n\r\t\0\s■『』「」]+", re.DOTALL)
     name = "common"
     start_urls = [
         "https://www.clien.net/service/",
@@ -145,7 +143,7 @@ class CommonSpider(CrawlSpider):
         item['parsed'] = None
 
         if failure.check(IgnoreRequest):
-            self.logger.debug('Forbidden by robot rule')
+            self.logger.info('Forbidden by robot rule')
             item['status'] = -1
 
         elif failure.check(DNSLookupError):

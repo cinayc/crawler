@@ -1,16 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from scrapy.exceptions import IgnoreRequest
 from scrapy.linkextractors import LinkExtractor
-from scrapy.spidermiddlewares.httperror import HttpError
-from scrapy.spiders import Rule, CrawlSpider
-from service_identity.exceptions import DNSMismatch
-from twisted.internet.error import DNSLookupError, NoRouteError
-from crawler.items import CrawlerItem
+from scrapy.spiders import Rule
 import pymysql
-from bs4 import BeautifulSoup
-from time import sleep
-import re
 
 from crawler.spiders.common_spider import CommonSpider
 
@@ -18,7 +10,7 @@ from crawler.spiders.common_spider import CommonSpider
 class UrlCrawlSpider(CommonSpider):
     name = "url_crawler"
     start_urls = [
-        "https://www.clien.net/service/",
+        "http://www.yonhapnews.co.kr/",
     ]
     request_url = ''
 
@@ -96,6 +88,7 @@ class UrlCrawlSpider(CommonSpider):
         "www.jacoup.co.kr",
         "or.kr",
         "www.ogage.co.kr",
+        "movie.naver.com",
     ]
 
     rules = (
@@ -135,8 +128,8 @@ class UrlCrawlSpider(CommonSpider):
 
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
 
-        request_url = self.fetch_one_url(self.request_url)
-        # request_url = self.start_urls[0]
+        # request_url = self.fetch_one_url(self.request_url)
+        request_url = self.start_urls[0]
         yield scrapy.Request(request_url,
                              callback=self.parse,
                              errback=lambda x: self.download_errback(x, request_url))
